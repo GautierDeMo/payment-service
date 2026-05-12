@@ -6,8 +6,7 @@
 // "Map" used to respect naming conventions in both pgsql and js
 
 generator client {
-  provider = "prisma-client"
-  output   = "db/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {

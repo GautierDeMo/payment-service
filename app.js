@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config()
 
 const indexRouter = require('./routes/index');
+const paymentRouter = require('./routes/payment.routes');
 
 const app = express();
 
@@ -35,10 +36,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/api/payments', paymentRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
+});
+
+// JSON error handler for API routes
+app.use(function(err, req, res, next) {
+  if (req.path.startsWith('/api/')) {
+    return res.status(err.status || err.statusCode || 500).json({ error: err.message || 'Internal server error' });
+  }
+  next(err);
 });
 
 // error handler
