@@ -1,5 +1,71 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    .payment-container
+        h1 PayPas
+        p.paypas-info Votre service de pas paiement
+
+        #payment-message.payment-message
+
+        form#payment-form(autocomplete="off" novalidate)
+            .form-group
+                label(for="card-number") Numéro de carte
+                input#card-number(
+                    type="text",
+                    name="cardNumber",
+                    placeholder="1234 5678 9012 3456",
+                    maxlength="19",
+                    inputmode="numeric",
+                    autocomplete="cc-number",
+                    required
+                )
+                .card-type#card-type
+                .error-message#card-number-error
+
+            .form-row
+                .form-group
+                    label(for="card-name") Nom sur la carte
+                    input#card-name(
+                        type="text",
+                        name="cardName",
+                        placeholder="JEAN DUPONT",
+                        maxlength="50",
+                        autocomplete="cc-name",
+                        required
+                    )
+                    .error-message#card-name-error
+
+                .form-group
+                    label(for="card-expiry") Date d'expiration
+                    input#card-expiry(
+                        type="text",
+                        name="cardExpiry",
+                        placeholder="MM/AA",
+                        maxlength="5",
+                        inputmode="numeric",
+                        autocomplete="cc-exp",
+                        required
+                    )
+                    .error-message#card-expiry-error
+
+                .form-group
+                    label(for="card-cvv") CVV
+                    input#card-cvv(
+                        type="text",
+                        name="cardCvv",
+                        placeholder="123",
+                        maxlength="3",
+                        inputmode="numeric",
+                        autocomplete="cc-csc",
+                        required
+                    )
+                    .error-message#card-cvv-error
+
+            .form-actions
+                button#pay-btn(type="submit", class="btn-primary") Payer
+                button#cancel-btn(type="button", class="btn-secondary") Annuler
+
+        .security-info
+            p 🔒 Paiement 100% sécurisé tkt pas
+            p 💳 Cartes acceptées : Visa / Mastercard
+            p ⏱️ Session expire après 2 minutes
