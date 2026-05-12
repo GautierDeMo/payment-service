@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// "Map" used to respect naming conventions in both pgsql and js
+
+generator client {
+  provider = "prisma-client"
+  output   = "db/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Payment {
+  id        Int               @id @default(autoincrement())
+  userId    Int               @map("user_id")
+  status    PaymentStatusEnum
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @default(now()) @updatedAt @map("updated_at")
+
+  invoice Invoice?
+}
+
+model Invoice {
+  id        Int      @id @default(autoincrement())
+  paymentId Int      @unique @map("payment_id")
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  payment      Payment       @relation(fields: [paymentId], references: [id])
+  bookInvoices BookInvoice[]
+}
+
+model BookInvoice {
+  id        Int     @id @default(autoincrement())
+  invoiceId Int     @map("invoice_id")
+  title     String
+  price     Decimal
+  quantity  Int
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+enum PaymentStatusEnum {
+  PENDING
+  VALIDATED
+  FAILED
+}
