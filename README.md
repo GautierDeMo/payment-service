@@ -12,11 +12,11 @@
 
 ### FRONT
 
-          - Front de tout
-          - Afficher les champs de carte bleue
-            - vérification avec regexp
-            - msg de validation de champs
-          - Le pipeline à gérer
+- Front de tout
+- Afficher les champs de carte bleue
+  - vérification avec regexp
+  - msg de validation de champs
+- Le pipeline à gérer
 
 ### BACK
 
@@ -94,42 +94,42 @@ Restock de la qté de produit et l'info qui permet de restock côté équipe cat
 
 ## TECHNOS
 
-### FRONT
+### FRONT PART
 
 - Rendu HTML du front
 
-### BACK
+### BACK PART
 
 - Express
 
 ## ARBORESCENCE
 
 ```text
-root
-├── controllers
-│  └── paymentController.js
-├── db
-│  └── index.js
-├── dtos
-│  └── cardDto.js
-│  └── cartDto.js // localStorage, fait par le Front
-│  └── userDto.js // à voir avec le README de l'auth
-├── middlewares
-│  └── récupérer celui de l'auth
-├── routers
-│  └── index.js
-├── services
-│  └── cartCalculator.js
-│  └── cartHandler.js
-│  └── paymentHandler.js
-├── views
-│  └── child 2
-│       ├── child 3
-│       └── child 4
-│           ├── child 5
-│           └── child 6
-│               └── child 7
-└── child 8
+  root
+  ├── controllers
+  │  └── paymentController.js
+  ├── db
+  │  └── index.js
+  ├── dtos
+  │  └── cardDto.js
+  │  └── cartDto.js // localStorage, fait par le Front
+  │  └── userDto.js // à voir avec le README de l'auth
+  ├── middlewares
+  │  └── récupérer celui de l'auth
+  ├── routers
+  │  └── index.js
+  ├── services
+  │  └── cartCalculator.js
+  │  └── cartHandler.js
+  │  └── paymentHandler.js
+  ├── views
+  │  └── child 2
+  │       ├── child 3
+  │       └── child 4
+  │           ├── child 5
+  │           └── child 6
+  │               └── child 7
+  └── child 8
 ```
 
 ## Relations avec les équipes
@@ -139,6 +139,8 @@ root
 - Quelle db ils utilisent ? Postgresql
 - quel endpoint pour soit vous envoyer les infos et vous gérez le fait de modifier la bdd // dans leur README
 - une doc swagger pour l'API
+//
+- Besoin d'envoyer une clé unique pour l’idempotence
 
 ### Équipe Authentification
 
@@ -150,5 +152,7 @@ root
 ### Équipe Front
 
 - localStorage pour le panier, avoir la structure de l'objet depuis le README
+//
+- Rediscuter des endpoints
 
 ### Steven
