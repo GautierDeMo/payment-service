@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getInvoice } = require("../controllers/payment.controller");
+const { getInvoice, downloadInvoicePdf } = require("../controllers/payment.controller");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -9,5 +9,8 @@ router.get("/", function (req, res, next) {
 
 /* GET invoice by ID */
 router.get("/invoices/:id", getInvoice);
+
+/* GET invoice PDF by ID */
+router.get("/invoices/:id/pdf", downloadInvoicePdf);
 
 module.exports = router;
