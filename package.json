@@ -12,7 +12,6 @@
         "binlookup": "^1.0.0",
         "card-validator": "^10.0.4",
         "class-validator": "^0.15.1",
-        "connect-pg-simple": "^10.0.0",
         "cookie-parser": "^1.4.7",
         "debug": "^4.4.3",
         "dotenv": "^17.4.2",
@@ -22,7 +21,6 @@
         "http-errors": "^2.0.1",
         "jsonwebtoken": "^9.0.3",
         "morgan": "^1.10.1",
-        "pg": "^8.20.0",
         "prisma": "^7.8.0",
         "pug": "^3.0.4",
         "zod": "^4.4.3"
