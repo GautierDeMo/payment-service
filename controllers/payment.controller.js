@@ -3,11 +3,8 @@ const {
     validateCardFormat,
     fetchBinInfo,
 } = require("../services/payment-checking.service");
-const {
-    fetchBooksByIds,
-    calculateTotal,
-    simulateRollback,
-} = require("../services/price-calculator.service");
+const { fetchBooksByIds, calculateTotal, simulateRollback } =
+    require("../services/price-calculator.service").default;
 const { CardDto } = require("../dtos/CardDto");
 const { CartDto } = require("../dtos/CartDto");
 const { UserDto } = require("../dtos/UserDto");
@@ -23,7 +20,7 @@ async function processPayment(req, res, next) {
             .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { userId, firstName, lastName, bookIds, card } = parsed.data;
+    const { userId, firstName, lastName, bookIds, card, orderId } = parsed.data;
 
     const cardCheck = validateCardFormat(card);
     if (!cardCheck.valid) {
@@ -39,9 +36,19 @@ async function processPayment(req, res, next) {
 
     const total = calculateTotal(books);
 
-    const payment = await prisma.payment.create({
-        data: { userId, status: "PENDING" },
-    });
+    let payment;
+    try {
+        payment = await prisma.payment.create({
+            data: { userId, orderId, status: "PENDING" },
+        });
+    } catch (createErr) {
+        if (createErr.code === "P2002") {
+            return res
+                .status(409)
+                .json({ error: "A payment for this orderId already exists" });
+        }
+        return next(createErr);
+    }
 
     try {
         const [, invoice] = await prisma.$transaction([
@@ -68,19 +75,8 @@ async function processPayment(req, res, next) {
         ]);
 
         return res.status(201).json({
-            status: "VALIDATED",
-            invoiceId: invoice.id,
-            total: parseFloat(total.toFixed(2)),
-            card: binInfo
-                ? {
-                      brand: binInfo.scheme || binInfo.brand || null,
-                      type: binInfo.type || null,
-                      country: binInfo.country
-                          ? binInfo.country.name || binInfo.country.alpha2
-                          : null,
-                      bank: binInfo.bank ? binInfo.bank.name : null,
-                  }
-                : null,
+            orderId,
+            status: "SUCCESS",
         });
     } catch (err) {
         await prisma.payment
@@ -91,7 +87,10 @@ async function processPayment(req, res, next) {
             .catch(() => {});
 
         simulateRollback(books);
-        next(err);
+        return res.status(200).json({
+            orderId,
+            status: "FAILED",
+        });
     }
 }
 

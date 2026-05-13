@@ -36,4 +36,4 @@ function simulateRollback(books) {
     );
 }
 
-module.exports = { fetchBooksByIds, calculateTotal, simulateRollback };
+export default { fetchBooksByIds, calculateTotal, simulateRollback };

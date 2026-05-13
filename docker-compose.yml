@@ -22,7 +22,7 @@ services:
         container_name: payment-service-app
         restart: unless-stopped
         ports:
-            - "3000:3000"
+            - "8003:8003"
         environment:
             NODE_ENV: production
             DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public

@@ -16,6 +16,7 @@ datasource db {
 model Payment {
   id        Int               @id @default(autoincrement())
   userId    Int               @map("user_id")
+  orderId   String            @unique @map("order_id")
   status    PaymentStatusEnum
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @default(now()) @updatedAt @map("updated_at")
