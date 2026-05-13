@@ -27,8 +27,8 @@ model Payment {
 model Invoice {
   id        Int      @id @default(autoincrement())
   paymentId Int      @unique @map("payment_id")
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
   createdAt DateTime @default(now()) @map("created_at")
 
   payment      Payment       @relation(fields: [paymentId], references: [id])
@@ -45,7 +45,7 @@ model BookInvoice {
 }
 
 enum PaymentStatusEnum {
-  PENDING
+  RESERVED
   VALIDATED
   FAILED
 }
