@@ -2,6 +2,10 @@ const prisma = require("../db/prismaClient");
 const invoiceService = require("../services/invoice.service");
 const { generateInvoicePdf } = require("../services/invoice-pdf.service");
 const { PaymentRequestDto } = require("../dtos/CartDto");
+const {
+    validateCardFormat,
+    fetchBinInfo,
+} = require("../services/payment-checking.service");
 
 const getInvoice = async (req, res) => {
     try {
@@ -49,13 +53,20 @@ async function processPayment(req, res, next) {
             .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { orderId, cart, total } = parsed.data;
+    const { orderId, cart, total, card } = parsed.data;
     const userId = parseInt(req.user.id);
+
+    const cardCheck = validateCardFormat(card);
+    if (!cardCheck.valid) {
+        return res.status(422).json({ error: cardCheck.reason });
+    }
+
+    const binInfo = await fetchBinInfo(card.number);
 
     let payment;
     try {
         payment = await prisma.payment.create({
-            data: { userId, orderId, status: "PENDING" },
+            data: { userId, orderId, status: "RESERVED" },
         });
     } catch (createErr) {
         if (createErr.code === "P2002") {

@@ -45,7 +45,7 @@ model BookInvoice {
 }
 
 enum PaymentStatusEnum {
-  PENDING
+  RESERVED
   VALIDATED
   FAILED
 }
