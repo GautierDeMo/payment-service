@@ -12,7 +12,6 @@ const PaymentRequestDto = z.object({
   status: z.literal('PENDING'),
   cart: z.array(CartItemDto).min(1, 'Cart must contain at least one item'),
   total: z.number().positive(),
-  token: z.string().min(1),
 });
 
 module.exports = { PaymentRequestDto };

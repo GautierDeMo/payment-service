@@ -1,16 +1,6 @@
 const prisma = require("../db/prismaClient");
 const invoiceService = require("../services/invoice.service");
 const { generateInvoicePdf } = require("../services/invoice-pdf.service");
-const {
-    validateCardFormat,
-    fetchBinInfo,
-} = require("../services/payment-checking.service");
-const { fetchBooksByIds, calculateTotal, simulateRollback } =
-    require("../services/price-calculator.service").default;
-const { CardDto } = require("../dtos/CardDto");
-const { CartDto } = require("../dtos/CartDto");
-const { UserDto } = require("../dtos/UserDto");
-const PaymentRequestDto = UserDto.merge(CartDto).extend({ card: CardDto });
 const { PaymentRequestDto } = require("../dtos/CartDto");
 
 const getInvoice = async (req, res) => {
@@ -59,24 +49,8 @@ async function processPayment(req, res, next) {
             .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { orderId, cart, token } = parsed.data;
-
-    let userId;
-    try {
-        const base64 = token
-            .split(".")[1]
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-        const payload = JSON.parse(
-            Buffer.from(base64, "base64").toString("utf8"),
-        );
-        userId = parseInt(payload.sub ?? payload.userId ?? payload.id);
-        if (!userId || isNaN(userId)) throw new Error();
-    } catch {
-        return res
-            .status(401)
-            .json({ error: "Invalid token: missing user identifier" });
-    }
+    const { orderId, cart } = parsed.data;
+    const userId = parseInt(req.user.id);
 
     let payment;
     try {
