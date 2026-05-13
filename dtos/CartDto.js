@@ -1,8 +1,18 @@
 const { z } = require('zod');
 
-const CartDto = z.object({
-  orderId: z.string().uuid('orderId must be a valid UUID v4'),
-  bookIds: z.array(z.number().int().positive()).min(1, 'At least one book is required'),
+const CartItemDto = z.object({
+  bookId: z.number().int().positive(),
+  title: z.string().min(1),
+  price: z.number().positive(),
+  quantity: z.number().int().positive(),
 });
 
-module.exports = { CartDto };
+const PaymentRequestDto = z.object({
+  orderId: z.string().uuid('orderId must be a valid UUID v4'),
+  status: z.literal('PENDING'),
+  cart: z.array(CartItemDto).min(1, 'Cart must contain at least one item'),
+  total: z.number().positive(),
+  token: z.string().min(1),
+});
+
+module.exports = { PaymentRequestDto };
