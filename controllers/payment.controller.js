@@ -49,7 +49,7 @@ async function processPayment(req, res, next) {
             .json({ errors: parsed.error.flatten().fieldErrors });
     }
 
-    const { orderId, cart } = parsed.data;
+    const { orderId, cart, total } = parsed.data;
     const userId = parseInt(req.user.id);
 
     let payment;
@@ -91,6 +91,7 @@ async function processPayment(req, res, next) {
         return res.status(201).json({
             orderId,
             status: "SUCCESS",
+            total,
         });
     } catch (err) {
         await prisma.payment
