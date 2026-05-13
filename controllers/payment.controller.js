@@ -101,6 +101,7 @@ async function processPayment(req, res, next) {
 
         return res.status(201).json({
             orderId,
+            cart,
             status: "SUCCESS",
             total,
         });
