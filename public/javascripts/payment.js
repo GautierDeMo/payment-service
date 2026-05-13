@@ -15,6 +15,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const total = parseFloat(sessionStorage.getItem('total') || '0');
     const token = localStorage.getItem('jwt');
 
+    // Extract user info from JWT token
+    let userId, firstName, lastName;
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userId = payload.userId;
+            firstName = payload.firstName;
+            lastName = payload.lastName;
+        } catch (e) {
+            console.error('Invalid token', e);
+        }
+    } else {
+        console.error('No token found in localStorage');
+        showMessage('❌ Non authentifié - Veuillez vous connecter', 'error');
+        // form.style.display = 'none';
+        return;
+    }
+
     const PAYMENT_TIMEOUT = 2 * 60 * 1000;
     const startTime = Date.now();
 
@@ -304,22 +322,32 @@ document.addEventListener('DOMContentLoaded', function () {
         payButton.textContent = 'Traitement...';
 
         try {
-            const response = await fetch('/checkout', {
+            // Parse expiry from MM/AA to MM/YYYY
+            const expiryParts = cardExpiryInput.value.split('/');
+            const expiryMonth = expiryParts[0];
+            const expiryYear = '20' + expiryParts[1]; // Convert AA to YYYY
+
+            // Extract bookIds from cart
+            const bookIds = cart.map(item => item.bookId || item.id);
+
+            const response = await fetch('/api/payments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    userId,
+                    firstName,
+                    lastName,
                     orderId,
-                    status: 'PENDING',
-                    cart,
-                    total,
-                    paymentMethod: {
-                        cardNumber: cardNumberInput.value.replace(/\s/g, ''),
-                        cardName: sanitizeInput(cardNameInput.value),
-                        cardExpiry: cardExpiryInput.value,
-                        cardCvv: cardCvvInput.value
+                    bookIds,
+                    card: {
+                        number: cardNumberInput.value.replace(/\s/g, ''),
+                        expiryMonth,
+                        expiryYear,
+                        cvv: cardCvvInput.value,
+                        holderName: sanitizeInput(cardNameInput.value)
                     }
                 })
             });
@@ -330,15 +358,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 response.ok && result.status === 'SUCCESS' && !isExpired()
                     ? 'SUCCESS'
                     : 'FAILED';
-
-            await fetch('/api/orders/confirm', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({orderId, status: finalStatus})
-            });
 
             showMessage(
                 finalStatus === 'SUCCESS'

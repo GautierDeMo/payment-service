@@ -10,7 +10,6 @@ const {fetchBooksByIds, calculateTotal, simulateRollback} =
 const {CardDto} = require("../dtos/CardDto");
 const {CartDto} = require("../dtos/CartDto");
 const {UserDto} = require("../dtos/UserDto");
-const {z} = require("zod");
 
 const getInvoice = async (req, res) => {
     try {
@@ -45,11 +44,6 @@ const downloadInvoicePdf = async (req, res) => {
             message: error.message,
         });
     }
-};
-
-module.exports = {
-    getInvoice,
-    downloadInvoicePdf,
 };
 
 const PaymentRequestDto = UserDto.merge(CartDto).extend({card: CardDto});
@@ -137,4 +131,8 @@ async function processPayment(req, res, next) {
     }
 }
 
-module.exports = {processPayment};
+module.exports = {
+    getInvoice,
+    downloadInvoicePdf,
+    processPayment,
+};

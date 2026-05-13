@@ -1,7 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../db/prismaClient");
 const formatInvoice = require("../dtos/InvoiceDto");
-
-const prisma = new PrismaClient();
 
 const getInvoiceById = async (invoiceId) => {
 	const invoice = await prisma.invoice.findUnique({
