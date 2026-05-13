@@ -1,0 +1,3 @@
+# picomatch - transitive devDependency (nodemon), not present in production bundle
+# Override applied in package.json but lockfile scanning still detects it
+CVE-2026-33671
