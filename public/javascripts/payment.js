@@ -13,16 +13,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const orderId = sessionStorage.getItem('orderId');
     const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
     const total = parseFloat(sessionStorage.getItem('total') || '0');
-    const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem('jwt') || localStorage.getItem('bibliotheca_token');
 
     // Extract user info from JWT token
     let userId, firstName, lastName;
     if (token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            userId = payload.userId;
-            firstName = payload.firstName;
-            lastName = payload.lastName;
+            userId = payload.sub ?? payload.userId;
+            // le service d'authentification ne stocke pas le prénom et le nom séparément, mais un champ "name" avec les deux.
+            // On va faire du bricolage pour les séparer, en prenant le premier mot comme prénom et le reste comme nom de famille.
+            // c'est bancal, mais pas le choix sans modifier le service d'authentification... sorry.
+            const nameParts = (payload.name ?? '').trim().split(/\s+/);
+            firstName = nameParts[0] ?? '';
+            lastName = nameParts.slice(1).join(' ') || '';
         } catch (e) {
             console.error('Invalid token', e);
         }
