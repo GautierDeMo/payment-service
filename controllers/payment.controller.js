@@ -78,7 +78,7 @@ async function processPayment(req, res, next) {
     }
 
     try {
-        await prisma.$transaction([
+        const [, invoice] = await prisma.$transaction([
             prisma.payment.update({
                 where: { id: payment.id },
                 data: { status: "VALIDATED" },
@@ -104,6 +104,7 @@ async function processPayment(req, res, next) {
             cart,
             status: "SUCCESS",
             total,
+            invoiceId: invoice.id,
         });
     } catch (err) {
         await prisma.payment
