@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const catalogUrl = sessionStorage.getItem('catalogUrl') || '';
+    const frontUrl = sessionStorage.getItem('frontUrl') || '';
+    const paymentsUrl = window.location.origin;
+
     const PAYMENT_TIMEOUT = 2 * 60 * 1000;
     const startTime = Date.now();
 
@@ -64,6 +68,43 @@ document.addEventListener('DOMContentLoaded', function () {
         return Date.now() - startTime > PAYMENT_TIMEOUT;
     }
 
+    /**
+     * Notify the catalog service of a stock outcome for every item in cart.
+     * @param {'PAYMENT_SUCCESS'|'PAYMENT_FAILED'|'CART_ABANDONED'} status
+     */
+    async function notifyStockEvents(status) {
+        if (!catalogUrl) return;
+        const tasks = cart.map((item) => {
+            const bookId = item.bookId || item.id;
+            const idempotencyKey = `${orderId}-${bookId}-${status.toLowerCase()}`;
+            return fetch(`${catalogUrl}/api/books/${bookId}/stock-events`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                    'x-idempotency-key': idempotencyKey
+                },
+                body: JSON.stringify({ status, quantity: item.quantity })
+            }).catch(() => {}); // fire-and-forget per book
+        });
+        await Promise.allSettled(tasks);
+    }
+
+    // Start the 2-minute expiry watchdog
+    const expiryTimer = setTimeout(async () => {
+        if (!isSubmitting) {
+            showMessage('⏱ Délai de paiement expiré, commande annulée.', 'error');
+            form.style.display = 'none';
+            await notifyStockEvents('CART_ABANDONED');
+            sessionStorage.setItem('orderResult', JSON.stringify({ orderId, cart, total, status: 'FAILED' }));
+            setTimeout(() => {
+                window.location.href = frontUrl ? `${frontUrl}/commande` : '/commande';
+            }, 2000);
+        }
+    }, PAYMENT_TIMEOUT);
+
+
+    
     /*
     =========================================
     Luhn Algorithm
@@ -331,9 +372,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const expiryMonth = expiryParts[0];
             const expiryYear = '20' + expiryParts[1]; // Convert AA to YYYY
 
-            // Extract bookIds from cart
-            const bookIds = cart.map(item => item.bookId || item.id);
-
             const response = await fetch('/api/payments', {
                 method: 'POST',
                 headers: {
@@ -341,11 +379,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    userId,
-                    firstName,
-                    lastName,
                     orderId,
-                    bookIds,
+                    cart,
+                    total,
                     card: {
                         number: cardNumberInput.value.replace(/\s/g, ''),
                         expiryMonth,
@@ -370,8 +406,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 finalStatus === 'SUCCESS' ? 'success' : 'error'
             );
 
-            if (finalStatus === 'SUCCESS') form.style.display = 'none';
-            else {
+            // On success the stock was already decremented at reservation (CartPage).
+            // Only send a rollback event on failure so catalog can re-increment.
+            clearTimeout(expiryTimer);
+            if (finalStatus !== 'SUCCESS') {
+                await notifyStockEvents('PAYMENT_FAILED');
+            }
+
+            if (finalStatus === 'SUCCESS') {
+                form.style.display = 'none';
+                const invoiceId = result.invoiceId ?? null;
+                sessionStorage.setItem('orderResult', JSON.stringify({
+                    orderId,
+                    cart,
+                    total,
+                    status: finalStatus,
+                    invoiceId,
+                    invoiceUrl: invoiceId ? `${paymentsUrl}/invoices/${invoiceId}/pdf` : null,
+                }));
+                setTimeout(() => {
+                    window.location.href = frontUrl ? `${frontUrl}/commande` : '/commande';
+                }, 1500);
+            } else {
                 isSubmitting = false;
                 payButton.disabled = false;
                 payButton.textContent = 'Payer';
@@ -390,7 +446,17 @@ document.addEventListener('DOMContentLoaded', function () {
     =========================================
     */
 
-    cancelButton.addEventListener('click', function () {
-        window.history.back();
+    cancelButton.addEventListener('click', async function () {
+        cancelButton.disabled = true;
+        cancelButton.textContent = 'Annulation...';
+        clearTimeout(expiryTimer);
+        await notifyStockEvents('CART_ABANDONED');
+        sessionStorage.setItem('orderResult', JSON.stringify({
+            orderId,
+            cart,
+            total,
+            status: 'FAILED',
+        }));
+        window.location.href = frontUrl ? `${frontUrl}/commande` : '/commande';
     });
 });
