@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const frontUrl = sessionStorage.getItem('frontUrl') || '';
     const paymentsUrl = window.location.origin;
 
-    const PAYMENT_TIMEOUT = 2 * 60 * 1000;
+    const PAYMENT_TIMEOUT = 5 * 60 * 1000;
     const startTime = Date.now();
 
     let isSubmitting = false;
